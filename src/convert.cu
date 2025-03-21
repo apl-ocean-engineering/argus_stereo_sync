@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "convert.h"
+#include "argus_stereo_sync/convert.h"
 
 __device__ inline uint8_t clamp(float val, float mn, float mx) {
   return (uint8_t) ((val >= mn)? ((val <= mx)? val : mx) : mn);
@@ -81,7 +81,7 @@ float run_smem_atomics(CUsurfObject surface1, CUsurfObject surface2,
   return elapsed_millis;
 }
 
-float convert(CUsurfObject surface1, CUsurfObject surface2,
+float convertSurfObject(CUsurfObject surface1, CUsurfObject surface2,
 	      unsigned int width, unsigned int height,
 	      uint8_t* oBuffer) {
   return run_smem_atomics(surface1, surface2, width, height, oBuffer);

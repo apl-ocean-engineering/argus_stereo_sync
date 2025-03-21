@@ -1,15 +1,44 @@
-cmake_minimum_required (VERSION 3.1)
+
+cmake_minimum_required(VERSION 3.3)
 project(argus_stereo_sync)
+
+if(NOT CMAKE_CXX_STANDARD)
+ set(CMAKE_CXX_STANDARD 17)
+endif()
+
+#if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+#  add_compile_options(-Wall -Wextra -Wpedantic)
+#endif()
 
 set(ARGUS_DIR /usr/src/jetson_multimedia_api/argus)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake "${CMAKE_MODULE_PATH}")
 
-find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs)
+set(THIS_PACKAGE_INCLUDE_DEPENDS
+  rclcpp
+  rclcpp_components
+  ament_cmake
+  camera_info_manager
+  image_transport
+  generate_parameter_library
+)
+
+foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
+  find_package(${Dependency} REQUIRED)
+endforeach()
+
+find_package(EGL REQUIRED)
 find_package(CUDA REQUIRED)
 find_package(Argus REQUIRED)
+find_package(X11 REQUIRED)
+
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+
+#
+#==
+#
+
 
 add_library(utils_lib
   ${ARGUS_DIR}/samples/utils/ArgusHelpers.cpp
@@ -21,9 +50,12 @@ add_library(utils_lib
   ${ARGUS_DIR}/samples/utils/gtk/GuiElement.cpp
   ${ARGUS_DIR}/samples/utils/gtk/Window.cpp
 )
+ament_target_dependencies(utils_lib ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 target_link_libraries(utils_lib
   ${GTK3_LIBRARIES}
+  ${EGL_LIBRARIES}
+  ${X11_LIBRARIES}
 )
 
 target_include_directories(utils_lib
@@ -32,25 +64,125 @@ target_include_directories(utils_lib
   ${ARGUS_DIR}/../include
   PRIVATE
   ${GTK3_INCLUDE_DIRS}
+  ${EGL_INCLUDE_DIRS}
 )
 
-set(SOURCES src/main.cpp src/convert.cu)
+#
+#==
+#
 
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-  ${ARGUS_INCLUDE_DIR}
+cuda_add_library(argus_stereo_cuda
+    src/convert.cu
+)
+
+target_include_directories(argus_stereo_cuda
+  PUBLIC
   ${CUDA_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-catkin_package()
-cuda_add_executable(${PROJECT_NAME} ${SOURCES})
-
-target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  ${ARGUS_LIBRARIES}
-  ${CUDA_LIBRARIES}
-  utils_lib
+target_link_libraries(argus_stereo_cuda
   cuda
 )
 
-include(CPack)
+#
+#==
+#
+
+add_executable(stereo_node
+    src/main.cpp 
+    # src/stereo_consumer.cpp
+    # src/cuda_frame_acquire.cpp
+)
+
+target_include_directories(stereo_node
+  PUBLIC
+  ${catkin_INCLUDE_DIRS}
+  ${ARGUS_INCLUDE_DIR}
+  ${CUDA_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(stereo_node
+  ${catkin_LIBRARIES}
+  argus_stereo_cuda
+  utils_lib
+)
+
+
+
+# ## Build stand-alone nodes
+# foreach(RosNode IN ITEMS polled_node streaming_node)
+
+#   add_executable(${RosNode} src/nodes/${RosNode}_main.cpp)
+#   target_include_directories( ${RosNode}
+#       PRIVATE ${arena_sdk_INCLUDE_DIRS}
+#       PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+#   )
+
+#   target_link_libraries(${RosNode} ${arena_camera_lib})
+# endforeach()
+
+
+# # ~~~ Standalone executable to dump all nodes from a camera
+# #
+# add_executable( dump_genicam_nodes
+#     tools/dump_genicam_nodes.cpp
+# )
+
+# target_include_directories( dump_genicam_nodes
+#     PRIVATE ${arena_sdk_INCLUDE_DIRS}
+# )
+
+# target_link_libraries( dump_genicam_nodes
+#     ${arena_sdk_LIBRARIES}
+# )
+
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+# # Installation of the library has an unexpected dependency on
+# # "arena_camera_parameters".   Resolve if downstream packages
+# # ever want to use the arena_camera library.
+# install(
+#   TARGETS ${arena_camera_lib}
+# #  EXPORT export_${PROJECT_NAME}
+#   LIBRARY DESTINATION lib
+#   ARCHIVE DESTINATION lib
+# )
+# # ament_export_targets(export_${arena_camera_lib} HAS_LIBRARY_TARGET)
+# # ament_export_dependencies(arena_camera_parameters)
+
+install(
+  TARGETS stereo_node
+  DESTINATION bin
+)
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+
+  # Run linters found in package.xml except those below
+#   set(ament_cmake_copyright_FOUND TRUE)
+#   set(ament_cmake_uncrustify_FOUND TRUE)
+#   set(ament_cmake_pep257_FOUND TRUE)
+#   set(ament_cmake_flake8_FOUND TRUE)
+
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()
+
+
+
+
+
+
+
