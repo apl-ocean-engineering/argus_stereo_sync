@@ -77,7 +77,6 @@ cuda_add_library(argus_stereo_cuda
 
 target_include_directories(argus_stereo_cuda
   PUBLIC
-  ${CUDA_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
@@ -91,20 +90,21 @@ target_link_libraries(argus_stereo_cuda
 
 add_executable(stereo_node
     src/main.cpp 
-    # src/stereo_consumer.cpp
-    # src/cuda_frame_acquire.cpp
+    src/stereo_consumer.cpp
+    src/cuda_frame_acquire.cpp
 )
 
 target_include_directories(stereo_node
   PUBLIC
-  ${catkin_INCLUDE_DIRS}
   ${ARGUS_INCLUDE_DIR}
   ${CUDA_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries(stereo_node
   ${catkin_LIBRARIES}
+  ${ARGUS_LIBRARIES}
   argus_stereo_cuda
   utils_lib
 )
@@ -156,10 +156,9 @@ install(
 # # ament_export_targets(export_${arena_camera_lib} HAS_LIBRARY_TARGET)
 # # ament_export_dependencies(arena_camera_parameters)
 
-install(
-  TARGETS stereo_node
-  DESTINATION bin
-)
+install(TARGETS stereo_node
+  DESTINATION lib/${PROJECT_NAME}
+  )
 
 install(
   DIRECTORY launch

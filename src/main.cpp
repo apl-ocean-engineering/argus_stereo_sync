@@ -22,10 +22,6 @@
 // #include "argus_stereo_sync/cuda_frame_acquire.h"
 
 
-#define PRODUCER_PRINT(...) printf("PRODUCER: " __VA_ARGS__)
-#define CONSUMER_PRINT(...) printf("CONSUMER: " __VA_ARGS__)
-
-
 uint8_t* oBuffer = new uint8_t[3 * STREAM_SIZE.width() * STREAM_SIZE.height()];
 
 
@@ -54,7 +50,7 @@ class ArgusStereoSyncNode : public rclcpp::Node {
     iCaptureSession->stopRepeat();
     iCaptureSession->waitForIdle();
   
-    PRODUCER_PRINT("Captures complete, disconnecting producer.\n");
+    RCLCPP_INFO(get_logger(), "Captures complete, disconnecting producer.");
     iStreamLeft->disconnect();
     iStreamRight->disconnect();
   
@@ -62,7 +58,7 @@ class ArgusStereoSyncNode : public rclcpp::Node {
     if(camera_provider_) camera_provider_.reset();
     PROPAGATE_ERROR_CONTINUE(g_display.cleanup());
   
-    PRODUCER_PRINT("Done -- exiting.\n");
+    RCLCPP_INFO(get_logger(),"Done -- exiting.");
 
    }
 
@@ -73,11 +69,11 @@ bool execute() {
   if (!iCameraProvider) {
     ORIGINATE_ERROR("Failed to get ICameraProvider interface");
   }
-  printf("Argus Version: %s\n", iCameraProvider->getVersion().c_str());
+  RCLCPP_INFO(get_logger(),"Argus Version: %s", iCameraProvider->getVersion().c_str());
 
   std::vector<CameraDevice*> cameraDevices;
   iCameraProvider->getCameraDevices(&cameraDevices);
-  printf("CAMERA DEVICES COUNT: %lu\n", cameraDevices.size());
+  RCLCPP_INFO(get_logger(),"CAMERA DEVICES COUNT: %lu", cameraDevices.size());
   if (cameraDevices.size() < 2) {
     ORIGINATE_ERROR("Must have at least 2 sensors available");
   }
@@ -107,17 +103,17 @@ bool execute() {
   iEGLStreamSettings->setMode(EGL_STREAM_MODE_MAILBOX);
   iEGLStreamSettings->setMetadataEnable(true);
 
-  PRODUCER_PRINT("Creating left stream.\n");
+  RCLCPP_INFO(get_logger(),"Creating left stream.");
   iStreamSettings->setCameraDevice(lrCameras[0]);
-  UniqueObj<OutputStream> streamLeft(iCaptureSession->createOutputStream(streamSettings.get()));
-  iStreamLeft = interface_cast<IEGLOutputStream>(streamLeft);
+  streamLeft.reset(iCaptureSession->createOutputStream(streamSettings.get()));
+  iStreamLeft=interface_cast<IEGLOutputStream>(streamLeft);
   if (!iStreamLeft) {
     ORIGINATE_ERROR("Failed to create left stream");
   }
 
-  PRODUCER_PRINT("Creating right stream.\n");
+  RCLCPP_INFO(get_logger(),"Creating right stream.");
   iStreamSettings->setCameraDevice(lrCameras[1]);
-  UniqueObj<OutputStream> streamRight(iCaptureSession->createOutputStream(streamSettings.get()));
+  streamRight.reset(iCaptureSession->createOutputStream(streamSettings.get()));
   iStreamRight = interface_cast<IEGLOutputStream>(streamRight);
   if (!iStreamRight) {
     ORIGINATE_ERROR("Failed to create right stream");
@@ -144,17 +140,18 @@ bool execute() {
 	  interface_cast<IAutoControlSettings>(iRequest->getAutoControlSettings());
   iAutoControlSettings->setIspDigitalGainRange(ISP_DIGITAL_GAIN_RANGE);
 
-  PRODUCER_PRINT("Launching disparity checking consumer\n");
+  RCLCPP_INFO(get_logger(),"Stereo consumer");
   stereo_consumer_ = std::make_shared<StereoConsumer>(iStreamLeft, iStreamRight, left_image_pub, right_image_pub);
+
   PROPAGATE_ERROR(stereo_consumer_->initialize());
   PROPAGATE_ERROR(stereo_consumer_->waitRunning());
 
-  PRODUCER_PRINT("Starting repeat capture requests.\n");
+  RCLCPP_INFO(get_logger(),"Starting repeat capture requests.");
   if (iCaptureSession->repeat(request.get()) != STATUS_OK) {
     ORIGINATE_ERROR("Failed to start repeat capture request for preview");
   }
 
-
+  return true;
 }
 
 
@@ -166,7 +163,7 @@ UniqueObj<CameraProvider> camera_provider_;
 
 std::shared_ptr<StereoConsumer> stereo_consumer_;
 
-
+UniqueObj<OutputStream> streamLeft, streamRight;
 IEGLOutputStream *iStreamRight, *iStreamLeft;
 ICaptureSession *iCaptureSession;
 
@@ -184,10 +181,13 @@ rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr right_camera_info_pub
 int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<argus_stereo_sync::ArgusStereoSyncNode>("argus_stereo_sync", rclcpp::NodeOptions());
+  if(!node->execute()) {
+      return -1;
+  }
+
   rclcpp::spin(node);
   rclcpp::shutdown();
 
-  
   return 0;
 
  

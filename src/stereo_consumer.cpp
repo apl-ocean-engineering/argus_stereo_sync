@@ -1,6 +1,6 @@
 // #include "argus_stereo_sync/convert.h"
 #include "argus_stereo_sync/stereo_consumer.h"
-// #include "argus_stereo_sync/cuda_frame_acquire.h"
+#include "argus_stereo_sync/cuda_frame_acquire.h"
 
 // #include <Argus/Argus.h>
 // #include <EGLStream/EGLStream.h>
@@ -8,9 +8,9 @@
 // #include <cudaEGL.h>
 
 // #include "ArgusHelpers.h"
-// #include "CUDAHelper.h"
-// #include "EGLGlobal.h"
-// #include "Error.h"
+#include "CUDAHelper.h"
+#include "EGLGlobal.h"
+#include "Error.h"
 // #include "Thread.h"
 
 
@@ -20,17 +20,18 @@
 
 namespace argus_stereo_sync {
 
-// using namespace Argus;
-// using namespace ArgusSamples;
+using namespace Argus;
+using namespace ArgusSamples;
 
 
-explicit StereoConsumer::StereoConsumer(Argus::IEGLOutputStream *leftStream, Argus::IEGLOutputStream *rightStream,   
-  const rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr &left_pub,
-  const rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr &right_pub )
+StereoConsumer::StereoConsumer(Argus::IEGLOutputStream *leftStream, 
+                                Argus::IEGLOutputStream *rightStream,   
+                                const rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr &left_pub,
+                                const rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr &right_pub )
            : m_leftStream(leftStream), 
              m_rightStream(rightStream),
-             m_cuStreamLeft(NULL), 
-             m_cuStreamRight(NULL),
+             m_cuStreamLeft(nullptr), 
+             m_cuStreamRight(nullptr),
              m_cudaContext(0), 
              left_pub_(left_pub), 
              right_pub_(right_pub)
@@ -66,6 +67,7 @@ bool StereoConsumer::threadExecute() {
 
   CONSUMER_PRINT("Streams connected, processing frames.\n");
   while (true) {
+    CONSUMER_PRINT("Thread running...\n");
     EGLint streamState = EGL_STREAM_STATE_CONNECTING_KHR;
 
     if (!eglQueryStreamKHR(m_leftStream->getEGLDisplay(), m_leftStream->getEGLStream(),

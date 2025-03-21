@@ -1,11 +1,11 @@
 #pragma once
 
-#include <EGLStream/EGLStream.h>
-#include <cuda.h>
-#include <cudaEGL.h>
-
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
+
+// #include <EGLStream/EGLStream.h>
+// #include <cuda.h>
+#include <cudaEGL.h>
 
 // #include "ArgusHelpers.h"
 // #include "CUDAHelper.h"
@@ -18,10 +18,10 @@
 namespace argus_stereo_sync {
 
 class CudaFrameAcquire {
-  public:
-    CudaFrameAcquire(CUeglStreamConnection& connection, 
-      const rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr &publisher);
-    ~CudaFrameAcquire();
+   public:
+     CudaFrameAcquire(CUeglStreamConnection& connection, 
+       const rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr &publisher);
+     ~CudaFrameAcquire();
 
     bool publish();
   
@@ -31,7 +31,7 @@ class CudaFrameAcquire {
     CUeglFrame m_frame;
     CUstream m_stream;
 
-    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_;
+rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_;
 
 };
 
