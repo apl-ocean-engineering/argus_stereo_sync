@@ -215,7 +215,7 @@ static bool execute() {
 
   std::vector <CameraDevice*> lrCameras;
   lrCameras.push_back(cameraDevices[0]);
-  lrCameras.push_back(cameraDevices[2]);
+  lrCameras.push_back(cameraDevices[1]);
 
   UniqueObj<CaptureSession> captureSession(iCameraProvider->createCaptureSession(lrCameras));
   ICaptureSession *iCaptureSession = interface_cast<ICaptureSession>(captureSession);
