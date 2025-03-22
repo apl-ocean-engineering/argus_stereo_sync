@@ -29,6 +29,18 @@ CudaFrameAcquire::CudaFrameAcquire(CUeglStreamConnection& connection, const rclc
                                    : m_connection(connection)
                                    , m_stream(NULL), m_resource(0),
                                    pub_(pub) {
+                                    CUresult cuResult = cuEGLStreamConsumerAcquireFrame(&m_connection, &m_resource, &m_stream, -1);
+
+                                    if (cuResult == CUDA_SUCCESS) {
+                                      cuResult =cuGraphicsResourceGetMappedEglFrame(&m_frame, m_resource, 0, 0);
+                                      if (cuResult != CUDA_SUCCESS) {
+                                        printf("Unable to get mapped frame (%s)", ArgusSamples::getCudaErrorString(cuResult));
+                                      }
+                                    } else {
+                                      printf("Unable to acquire frame (%s)", ArgusSamples::getCudaErrorString(cuResult));
+                                  
+                                    }
+                                  
 }
 
 CudaFrameAcquire::~CudaFrameAcquire() {
@@ -39,17 +51,6 @@ CudaFrameAcquire::~CudaFrameAcquire() {
 
 bool CudaFrameAcquire::publish() {
 
-  CUresult cuResult = cuEGLStreamConsumerAcquireFrame(&m_connection, &m_resource, &m_stream, -1);
-
-  if (cuResult == CUDA_SUCCESS) {
-    cuResult =cuGraphicsResourceGetMappedEglFrame(&m_frame, m_resource, 0, 0);
-    if (cuResult != CUDA_SUCCESS) {
-      ORIGINATE_ERROR("Unable to get mapped frame (%s)", ArgusSamples::getCudaErrorString(cuResult));
-    }
-  } else {
-    ORIGINATE_ERROR("Unable to acquire frame (%s)", ArgusSamples::getCudaErrorString(cuResult));
-
-  }
 
   CUDA_RESOURCE_DESC cudaResourceDesc;
   memset(&cudaResourceDesc, 0, sizeof(cudaResourceDesc));
@@ -57,7 +58,7 @@ bool CudaFrameAcquire::publish() {
 
   cudaResourceDesc.res.array.hArray = m_frame.frame.pArray[0];
   CUsurfObject cudaSurfObj1 = 0;
-  cuResult = cuSurfObjectCreate(&cudaSurfObj1, &cudaResourceDesc);
+  CUresult cuResult = cuSurfObjectCreate(&cudaSurfObj1, &cudaResourceDesc);
   if (cuResult != CUDA_SUCCESS) {
     ORIGINATE_ERROR("Unable to create surface object 1 (%s)", ArgusSamples::getCudaErrorString(cuResult));
   }

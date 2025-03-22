@@ -71,7 +71,6 @@ bool execute() {
   }
   RCLCPP_INFO(get_logger(),"Argus Version: %s", iCameraProvider->getVersion().c_str());
 
-  std::vector<CameraDevice*> cameraDevices;
   iCameraProvider->getCameraDevices(&cameraDevices);
   RCLCPP_INFO(get_logger(),"CAMERA DEVICES COUNT: %lu", cameraDevices.size());
   if (cameraDevices.size() < 2) {
@@ -82,7 +81,7 @@ bool execute() {
   lrCameras.push_back(cameraDevices[0]);
   lrCameras.push_back(cameraDevices[1]);
 
-  UniqueObj<CaptureSession> captureSession(iCameraProvider->createCaptureSession(lrCameras));
+  captureSession.reset(iCameraProvider->createCaptureSession(lrCameras));
   iCaptureSession = interface_cast<ICaptureSession>(captureSession);
   if (!iCaptureSession) {
     ORIGINATE_ERROR("Failed to get capture session interface");
@@ -119,7 +118,7 @@ bool execute() {
     ORIGINATE_ERROR("Failed to create right stream");
   }
 
-  UniqueObj<Request> request(iCaptureSession->createRequest());
+  request.reset(iCaptureSession->createRequest());
   IRequest *iRequest = interface_cast<IRequest>(request);
   if (!iRequest) {
     ORIGINATE_ERROR("Failed to create Request");
@@ -158,9 +157,11 @@ bool execute() {
 protected:
 
 ArgusSamples::EGLDisplayHolder g_display;
+UniqueObj<CaptureSession> captureSession;
+std::vector<CameraDevice*> cameraDevices;
 
 UniqueObj<CameraProvider> camera_provider_;
-
+UniqueObj<Request> request;
 std::shared_ptr<StereoConsumer> stereo_consumer_;
 
 UniqueObj<OutputStream> streamLeft, streamRight;
@@ -191,11 +192,6 @@ int main(int argc, char *argv[]) {
   return 0;
 
  
-  // rclcpp::init(argc, argv);
-  // auto node = rclcpp::Node::make_shared("argus_shared_node");
-  
-
-  
   // if (!ArgusSamples::execute()) {
   //   delete[] oBuffer;
   //   return EXIT_FAILURE;

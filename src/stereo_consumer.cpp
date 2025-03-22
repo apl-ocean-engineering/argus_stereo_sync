@@ -67,7 +67,6 @@ bool StereoConsumer::threadExecute() {
 
   CONSUMER_PRINT("Streams connected, processing frames.\n");
   while (true) {
-    CONSUMER_PRINT("Thread running...\n");
     EGLint streamState = EGL_STREAM_STATE_CONNECTING_KHR;
 
     if (!eglQueryStreamKHR(m_leftStream->getEGLDisplay(), m_leftStream->getEGLStream(),
