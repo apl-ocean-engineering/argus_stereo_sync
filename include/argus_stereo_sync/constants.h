@@ -1,7 +1,10 @@
+//
+//
+// Copyright 2025 University of Washington
+
 #pragma once
 
 #include <Argus/Types.h>
-
 
 static const uint32_t FRAMERATE = 10;
 static const Argus::Size2D<uint32_t> STREAM_SIZE(1440, 1080);

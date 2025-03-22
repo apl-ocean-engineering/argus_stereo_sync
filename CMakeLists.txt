@@ -89,7 +89,7 @@ target_link_libraries(argus_stereo_cuda
 #
 
 add_executable(stereo_node
-    src/main.cpp 
+    src/main.cpp
     src/stereo_consumer.cpp
     src/cuda_frame_acquire.cpp
 )
@@ -178,10 +178,3 @@ if(BUILD_TESTING)
 endif()
 
 ament_package()
-
-
-
-
-
-
-

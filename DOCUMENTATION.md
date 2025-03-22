@@ -44,7 +44,7 @@ This file contains almost all the code for our _argus_stereo_sync_ ROS node. It 
 
 ![Libargus Flowchart](https://www.e-consystems.com/images/argus_app_flow.png)
 
-The entire program is divided into a Producer-Consumer setup The Host device acts as a Producer - initializing the capture sessions, setting up image streams, etc. The consumer is initialized with these streams and receive frames from the same. It is here where all the image processing occurs. In our usecase we specify CUDA to be the consumer as it allows us to exploit the parallelized nature of GPUs to speed up colorspace conversion, while simultaneously reducing CPU load. The consumer subsequently publishes the images to their respective ROS topics. 
+The entire program is divided into a Producer-Consumer setup The Host device acts as a Producer - initializing the capture sessions, setting up image streams, etc. The consumer is initialized with these streams and receive frames from the same. It is here where all the image processing occurs. In our usecase we specify CUDA to be the consumer as it allows us to exploit the parallelized nature of GPUs to speed up colorspace conversion, while simultaneously reducing CPU load. The consumer subsequently publishes the images to their respective ROS topics.
 
 ___
 
@@ -188,7 +188,7 @@ PROPAGATE_ERROR(g_display.cleanup());
 
 PRODUCER_PRINT("Done -- exiting.\n");
 ros::shutdown();
-  
+
 return true;
 ```
 These lines get executed once the node is terminated, to cleanup all our created objects and streams.
@@ -376,7 +376,7 @@ Two CUDA events are created and recorded before and after the kernel computation
 ___
 
 ### 3. void convert_kernel(CUsurfObject, CUsurfObject, unsigned int, unsigned int, uint8_t*)
-This is the parallelized function that converts the two YCbCr two-dimensional surfaces (arrays) into a single one-dimensional BGR8 buffer. The first step involves 
+This is the parallelized function that converts the two YCbCr two-dimensional surfaces (arrays) into a single one-dimensional BGR8 buffer. The first step involves
 
 CUDA arrays cannot be accessed directly like regular C++ arrays. Instead they must be cast into CUDA surface objects (_CUsurfObject_) and then the data stored in them can be referenced using the [Surface Object API](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#surface-object-api-appendix) - namely through functions such as
 ```
@@ -455,7 +455,7 @@ bool initCUDA(CUcontext *context);
 ```
 - __EGLGlobal.cpp__
 ```
-/* 
+/*
  * A class to initialize and cleanup an EGL display.
  */
 class EGLDisplayHolder {
@@ -467,7 +467,7 @@ class EGLDisplayHolder {
     bool cleanup();
 
     EGLDisplay get() const;
-    
+
   private:
     EGLDisplay m_display;
     bool m_disableWindow;

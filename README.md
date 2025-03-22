@@ -12,7 +12,7 @@
 - [License](#license)
 
 ### Introduction
-Synchronization describes the process of triggering two or more cameras in such a way that allows them to produce image frames at the same instance of time. Synchronization of cameras is essential to achieving good quality real-time stereo matching for depth estimation, especially on fast-moving systems. 
+Synchronization describes the process of triggering two or more cameras in such a way that allows them to produce image frames at the same instance of time. Synchronization of cameras is essential to achieving good quality real-time stereo matching for depth estimation, especially on fast-moving systems.
 
 Typical methods to accomplish synchronization involve using serial connections between cameras where the 'master' camera triggers its 'slaves' to grab an image frame along with it (hardware synchronization), or by starting the capture session at identical framerates, as close as possible, and discarding image pairs that lie beyond a certain threshold (software synchronization). In the absence of hardware trigger GPIO (such as on the LI-IMX274-CS cameras we utilize), software synchronization remains the only option - however, dropping image pairs effectively lowers the output framerate of the cameras.
 
@@ -73,7 +73,7 @@ _Please report any bugs and issues encountered to the repo issue tracker. Pull r
 - Published messages should use sensor timestamp, not _ros::now::time()_.
 - Add the ability to dynamically set camera exposure range, allowing with other parameters such as framerate and resolution (preferably without restarting node).
 - Automate API installation.
-- Optimize CUDA kernel for improved performance at higher resolutions. (YUV 422 supported by ROS requires 16-bit per pixel as opposed to the 24-bit per pixel of BGR8 - Thereby reducing buffer size by 33%) 
+- Optimize CUDA kernel for improved performance at higher resolutions. (YUV 422 supported by ROS requires 16-bit per pixel as opposed to the 24-bit per pixel of BGR8 - Thereby reducing buffer size by 33%)
 ### License
 MIT License. Copyright (c) 2020 Neil Khera
 
