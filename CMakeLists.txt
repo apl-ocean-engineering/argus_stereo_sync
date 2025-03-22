@@ -35,8 +35,8 @@ find_package(X11 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 
+# == Build ==
 #
-#==
 #
 
 
@@ -68,27 +68,10 @@ target_include_directories(utils_lib
 )
 
 #
-#==
 #
 
-cuda_add_library(argus_stereo_cuda
+cuda_add_executable(stereo_node
     src/convert.cu
-)
-
-target_include_directories(argus_stereo_cuda
-  PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-target_link_libraries(argus_stereo_cuda
-  cuda
-)
-
-#
-#==
-#
-
-add_executable(stereo_node
     src/main.cpp
     src/stereo_consumer.cpp
     src/cuda_frame_acquire.cpp
@@ -105,39 +88,12 @@ target_include_directories(stereo_node
 target_link_libraries(stereo_node
   ${catkin_LIBRARIES}
   ${ARGUS_LIBRARIES}
-  argus_stereo_cuda
+  cuda
   utils_lib
 )
 
-
-
-# ## Build stand-alone nodes
-# foreach(RosNode IN ITEMS polled_node streaming_node)
-
-#   add_executable(${RosNode} src/nodes/${RosNode}_main.cpp)
-#   target_include_directories( ${RosNode}
-#       PRIVATE ${arena_sdk_INCLUDE_DIRS}
-#       PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-#   )
-
-#   target_link_libraries(${RosNode} ${arena_camera_lib})
-# endforeach()
-
-
-# # ~~~ Standalone executable to dump all nodes from a camera
-# #
-# add_executable( dump_genicam_nodes
-#     tools/dump_genicam_nodes.cpp
-# )
-
-# target_include_directories( dump_genicam_nodes
-#     PRIVATE ${arena_sdk_INCLUDE_DIRS}
-# )
-
-# target_link_libraries( dump_genicam_nodes
-#     ${arena_sdk_LIBRARIES}
-# )
-
+# == Install ==
+#
 
 install(
   DIRECTORY include/
