@@ -1,3 +1,5 @@
+> NOTE:  I have branched this repo to [vc-stereo-ros2](https://github.com/apl-ocean-engineering/vc-stereo-ros2) and will archive this repo.   Distribution will continue at that location.
+
 # Argus Stereo Sync
 
 This a ROS2 driver for publishing data from two cameras through the `libargus`, the Image Signal Processor built into the **Jetpack** OS for Jetson devices.  We have been testing with two IMX296-based [Vision Components](https://www.vision-components.com/en/) cameras attached to a Jetson Orin Nano development kit running [Jetpack 6.2](https://developer.nvidia.com/embedded/jetpack).   As Jetpack 6.2 is based on Ubuntu 22.04, we run ROS2 "humble" built from source with our [custom installer](https://gitlab.com/rsa-perception-sensor/trisect_environment/-/tree/jetpack-6.1?ref_type=heads).
